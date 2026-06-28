@@ -14,6 +14,7 @@ module out_gen (
 
 // Generate final data operation result
 always @(*) begin
+    // Case 1: R-Type instructions (Math/Logic)
     if (is_fmt_r) begin
         casex (i_funct3)
             3'b000: data_op_result = data_arith_result;
@@ -25,8 +26,13 @@ always @(*) begin
             3'b101: data_op_result = shift_result;
             default: data_op_result = 0;
         endcase
-    end else begin 
-        // FIX: Default to arithmetic result for I-type math (like ADDI)
+    end 
+    // Case 2: Store instructions (Do not produce a result for rd)
+    else if (is_fmt_s) begin
+        data_op_result = 32'd0; 
+    end
+    // Case 3: Load/I-Type instructions
+    else begin 
         data_op_result = data_arith_result;
     end
 end

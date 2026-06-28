@@ -16,11 +16,15 @@ module decoder_r_ld_st_stage (
     output reg [31:0] d_mem_write_data,
     output reg d_mem_en, d_mem_write_en,
     output reg [4:0] rd,
+    output reg [4:0] rs1, rs2, // Added for hazard detection
+    output reg mem_read,       // Added for hazard detection
+    output reg is_branch,
+    output reg [31:0] branch_imm,
     output reg write_ex_result_to_rd, write_d_mem_out_to_rd
 );
 
 reg [6:0] funct7, opcode;
-reg [4:0] rs2, rs1;
+// reg [4:0] rs2, rs1;
 reg [31:0] imm_i, imm_s;
 wire [31:0] d_rs1, d_rs2;
 
@@ -35,18 +39,19 @@ always @(*) begin
     funct3 = inst[14:12];
     rd = inst[11:7];
     opcode = inst[6:0];
-    
+    mem_read = (opcode == 7'b0000011);
     imm_i = {{20{inst[31]}}, inst[31:20]};  
     imm_s = {{20{inst[31]}}, inst[31:25], inst[11:7]};  
     
     is_strict_r = (opcode == 7'b0110011);
     is_i_alu    = (opcode == 7'b0010011); // Detect ADDI, ANDI, ORI, XORI, etc.
-
-    // MINIMAL FIX 1: Group I-Type ALU under fmt_r so out_gen automatically multiplexes it using funct3!
-    fmt_r     = is_strict_r || is_i_alu; 
+    //branch unit
+    is_branch = (opcode == 7'b1100011);
+    branch_imm = {{20{inst[31]}}, inst[7], inst[30:25], inst[11:8], 1'b0};
     
-    fmt_il    = (opcode == 7'b0000011);
-    fmt_s     = (opcode == 7'b0100011);
+    fmt_r  = (opcode == 7'b0110011 || opcode == 7'b0010011) && !is_branch; 
+    fmt_il = (opcode == 7'b0000011) && !is_branch;
+    fmt_s  = (opcode == 7'b0100011) && !is_branch;
 
     // Memory Control
     d_mem_write_data = d_rs2;
@@ -56,13 +61,15 @@ always @(*) begin
     // Write Back Control
     write_ex_result_to_rd = fmt_r; // fmt_r now correctly covers both R-type and I-type ALU
     write_d_mem_out_to_rd = fmt_il;
+    
+
 end
 
 // DATA ARITHMETIC UNIT
 always @(*) begin
     d_au_in1 = d_rs1;
     
-    // MINIMAL FIX 2: Give the Math Unit the Immediate value if it's an I-Type ALU instruction
+  
     d_au_in2 = (is_i_alu) ? imm_i : d_rs2; 
     
     d_au_in1_type = (funct3 == 3'b011) ? 0 : 1; 
@@ -75,8 +82,7 @@ end
 // LOGIC UNIT
 always @(*) begin
     logic_unit_in1 = d_rs1;
-    
-    // MINIMAL FIX 3: Give the Logic Unit the Immediate value instead of rs2
+
     logic_unit_in2 = (is_i_alu) ? imm_i : d_rs2; 
     
     case(funct3)
@@ -122,5 +128,6 @@ register_file r0 (
     .source_reg_1_data(d_rs1), 
     .source_reg_2_data(d_rs2)
 );
+
 
 endmodule

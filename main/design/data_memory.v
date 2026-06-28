@@ -156,8 +156,9 @@ end
 wire [7:0] out_0, out_1, out_2, out_3;
 
 // ================= CORRECT INSTANCES =================
-blk_mem_gen_1 d_mem_byte_0(
-    .clka(d_mem_clock),
+// FIX: Using ~d_mem_clock to force memory fetch on the falling edge!
+blk_mem_gen_0 d_mem_byte_0(
+    .clka(~d_mem_clock), 
     .ena(enable_0),
     .wea(write_enable_0),
     .addra(address_0),
@@ -165,8 +166,8 @@ blk_mem_gen_1 d_mem_byte_0(
     .douta(out_0)
 );
 
-blk_mem_gen_1 d_mem_byte_1(
-    .clka(d_mem_clock),
+blk_mem_gen_0 d_mem_byte_1(
+    .clka(~d_mem_clock),
     .ena(enable_1),
     .wea(write_enable_1),
     .addra(address_1),
@@ -174,8 +175,8 @@ blk_mem_gen_1 d_mem_byte_1(
     .douta(out_1)
 );
 
-blk_mem_gen_1 d_mem_byte_2(
-    .clka(d_mem_clock),
+blk_mem_gen_0 d_mem_byte_2(
+    .clka(~d_mem_clock),
     .ena(enable_2),
     .wea(write_enable_2),
     .addra(address_2),
@@ -183,8 +184,8 @@ blk_mem_gen_1 d_mem_byte_2(
     .douta(out_2)
 );
 
-blk_mem_gen_1 d_mem_byte_3(
-    .clka(d_mem_clock),
+blk_mem_gen_0 d_mem_byte_3(
+    .clka(~d_mem_clock),
     .ena(enable_3),
     .wea(write_enable_3),
     .addra(address_3),

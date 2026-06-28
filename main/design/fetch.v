@@ -13,7 +13,7 @@ wire [9:0] adder_out;
 wire [9:0] old_pc;
 wire en;
 
-blk_mem_gen_0 uut (
+blk_mem_gen_2 uut (
     .clka(clk),
     .ena(fetch_en),
     .addra(address), 
@@ -40,15 +40,7 @@ synchronizer d1(
     .out(old_pc),
     .en(fetch_en)
 );
-
-synchronizer d3(
-    .din(old_pc),
-    .clk(clk),
-    .en(en),
-    .clr(clr),
-    .out(pc)
-);
-
+assign pc = old_pc;
 dff sync(.clr(clr), .en(fetch_en), .clk(clk), .out(en));
 
 endmodule

@@ -2,7 +2,7 @@ module out_gen (
     output reg [31:0] data_op_result,
     output reg [31:0] data_mem_address,
     input is_fmt_r, 
-    input is_fmt_il, 
+    input is_fmt_il, // Make sure this is driven by your Control Unit for loads!
     input is_fmt_s, 
     input [2:0] i_funct3, 
     input [31:0] data_arith_result,
@@ -14,7 +14,6 @@ module out_gen (
 
 // Generate final data operation result
 always @(*) begin
-    // Case 1: R-Type instructions (Math/Logic)
     if (is_fmt_r) begin
         casex (i_funct3)
             3'b000: data_op_result = data_arith_result;
@@ -24,16 +23,15 @@ always @(*) begin
             3'b111: data_op_result = logic_result;
             3'b001: data_op_result = shift_result;
             3'b101: data_op_result = shift_result;
-            default: data_op_result = 0;
+            default: data_op_result = 32'd0;
         endcase
     end 
-    // Case 2: Store instructions (Do not produce a result for rd)
-    else if (is_fmt_s) begin
+    // FIX: Load and Store instructions shouldn't pass ALU math to rd data path
+    else if (is_fmt_s || is_fmt_il) begin
         data_op_result = 32'd0; 
     end
-    // Case 3: Load/I-Type instructions
     else begin 
-        data_op_result = data_arith_result;
+        data_op_result = data_arith_result; // Regular I-type arithmetic (addi, etc.)
     end
 end
 
@@ -42,7 +40,7 @@ always @(*) begin
     if (is_fmt_il || is_fmt_s)
         data_mem_address = address_arith_result;
     else
-        data_mem_address = 0;
+        data_mem_address = 32'd0;
 end
 
 endmodule

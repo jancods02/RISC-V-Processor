@@ -12,7 +12,7 @@ module tb_single_cycle_risc();
     );
     
     initial begin
-        clk = 0;
+        clk = 1;
         forever #5 clk = ~clk; 
     end
 
@@ -49,4 +49,20 @@ module tb_single_cycle_risc();
                      uut.final_data_op_result);    // The calculation output
         end
     end
+    
+   always @(posedge clk) begin
+    if (!reset) begin
+        $display("\n======================= CYCLE Snapshot | Time: %0d ns =======================", $time);
+        $display("x00-x03 : %h  %h  %h  %h", uut.decoder_unit.rf.reg_file[0],  uut.decoder_unit.rf.reg_file[1],  uut.decoder_unit.rf.reg_file[2],  uut.decoder_unit.rf.reg_file[3]);
+        $display("x04-x07 : %h  %h  %h  %h", uut.decoder_unit.rf.reg_file[4],  uut.decoder_unit.rf.reg_file[5],  uut.decoder_unit.rf.reg_file[6],  uut.decoder_unit.rf.reg_file[7]);
+        $display("x08-x11 : %h  %h  %h  %h", uut.decoder_unit.rf.reg_file[8],  uut.decoder_unit.rf.reg_file[9],  uut.decoder_unit.rf.reg_file[10], uut.decoder_unit.rf.reg_file[11]);
+        $display("x12-x15 : %h  %h  %h  %h", uut.decoder_unit.rf.reg_file[12], uut.decoder_unit.rf.reg_file[13], uut.decoder_unit.rf.reg_file[14], uut.decoder_unit.rf.reg_file[15]);
+        $display("x16-x19 : %h  %h  %h  %h", uut.decoder_unit.rf.reg_file[16], uut.decoder_unit.rf.reg_file[17], uut.decoder_unit.rf.reg_file[18], uut.decoder_unit.rf.reg_file[19]);
+        $display("x20-x23 : %h  %h  %h  %h", uut.decoder_unit.rf.reg_file[20], uut.decoder_unit.rf.reg_file[21], uut.decoder_unit.rf.reg_file[22], uut.decoder_unit.rf.reg_file[23]);
+        $display("x24-x27 : %h  %h  %h  %h", uut.decoder_unit.rf.reg_file[24], uut.decoder_unit.rf.reg_file[25], uut.decoder_unit.rf.reg_file[26], uut.decoder_unit.rf.reg_file[27]);
+        $display("x28-x31 : %h  %h  %h  %h", uut.decoder_unit.rf.reg_file[28], uut.decoder_unit.rf.reg_file[29], uut.decoder_unit.rf.reg_file[30], uut.decoder_unit.rf.reg_file[31]);
+        $display("============================================================================");
+    end
+
+end
 endmodule

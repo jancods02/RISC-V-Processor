@@ -40,7 +40,7 @@ synchronizer d1(
     .out(old_pc),
     .en(fetch_en)
 );
-assign pc = old_pc;
+assign pc = clr? 0:old_pc;
 dff sync(.clr(clr), .en(fetch_en), .clk(clk), .out(en));
 
 endmodule

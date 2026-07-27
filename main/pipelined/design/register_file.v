@@ -1,64 +1,53 @@
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 04/20/2026 02:09:03 PM
-// Design Name: 
-// Module Name: register
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
-module register_file(source_reg_1, source_reg_2, dest_reg, write_en, clk, write_data,
-source_reg_1_data, source_reg_2_data);
-input [4:0] source_reg_1, source_reg_2, dest_reg;
-input write_en, clk;
-input [31:0] write_data;
-output [31:0] source_reg_1_data, source_reg_2_data;
-reg [31:0] source_reg_1_data, source_reg_2_data;
-reg [31:0] reg_file [0:31]; //32 x 32-bit register file
 
-integer i;
-initial begin
-    
-    for (i = 0; i < 32; i = i + 1) begin
-        reg_file[i] = i; 
+module register_file(
+    input [4:0] source_reg_1, 
+    input [4:0] source_reg_2, 
+    input [4:0] dest_reg,
+    input write_en, 
+    input clk,
+    input [31:0] write_data,
+    output reg [31:0] source_reg_1_data, 
+    output reg [31:0] source_reg_2_data
+);
+
+    reg [31:0] reg_file [0:31]; 
+    integer i;
+
+    // Initialize registers with their index values for simulation stability
+    initial begin
+        for (i = 0; i < 32; i = i + 1) begin
+            reg_file[i] = i; 
+        end
     end
-end
 
-//WRITE TO REGISTER FILE: SYNCHRONOUSLY AT THE NEGATIVE EDGE OF THE CLOCK
-always @(posedge clk)
-begin
-if(write_en)
-casex (dest_reg)
-5'b00000: reg_file[dest_reg] <= 0;
-default : reg_file[dest_reg] <= write_data;
-endcase
-end
+    // SYNCHRONOUS WRITE OPERATION (x0 remains hardwired to 0)
+    always @(posedge clk) begin
+        if (write_en && (dest_reg != 5'b00000)) begin
+            reg_file[dest_reg] <= write_data;
+        end
+    end
 
-//ASYNCHRONOUS READ OPERATION FROM source_reg_1
-always @(*)
-begin
-casex (source_reg_1)
-5'b00000 : source_reg_1_data = 0;
-default : source_reg_1_data = reg_file [source_reg_1];
-endcase
-end
-//ASYNCHRONOUS READ OPERATION FROM source_reg_2
-always @(*)
-begin
-casex (source_reg_2)
-5'b00000 : source_reg_2_data = 0;
-default : source_reg_2_data = reg_file [source_reg_2];
-endcase
-end
+    // ASYNCHRONOUS READ WITH INTERNAL BYPASS FOR REG 1
+    always @(*) begin
+        if (source_reg_1 == 5'b00000) begin
+            source_reg_1_data = 32'd0;
+        end else if (write_en && (source_reg_1 == dest_reg)) begin
+            source_reg_1_data = write_data; // Internal Forwarding Bypass Loop
+        end else begin
+            source_reg_1_data = reg_file[source_reg_1];
+        end
+    end
+
+    // ASYNCHRONOUS READ WITH INTERNAL BYPASS FOR REG 2
+    always @(*) begin
+        if (source_reg_2 == 5'b00000) begin
+            source_reg_2_data = 32'd0;
+        end else if (write_en && (source_reg_2 == dest_reg)) begin
+            source_reg_2_data = write_data; // Internal Forwarding Bypass Loop
+        end else begin
+            source_reg_2_data = reg_file[source_reg_2];
+        end
+    end
+
 endmodule
